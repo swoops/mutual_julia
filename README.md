@@ -36,16 +36,24 @@ steal my password.
 
 # Building and running
 Get the source for Xscreensaver and run: 
+```
     ./configure 
+```
 and copy these files (except the README) to the hacks/glx directory.  Then run 
+```
     make julia_gl
+```
 Running the program in windowed mode:
+```
     ./julia_gl
+```
 will cause a window to pop up with a distorted Julia set.  Here is what the keys do:
+```
     w       print TOTP token
     a       print how much of the token you have typed
     0-9     input the TOTP token
     r       reload the shader
+```
 You can also reference the executable in your ~/.xscreensaver file and use it as a 
 screensaver but it will not accept any key presses.  If you do that make sure you
 reference the shader file properly with the -shader flag.  

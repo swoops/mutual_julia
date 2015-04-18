@@ -1,4 +1,4 @@
-/* julia_gl, Copyright (c) 2014-2015 Dennis Goodlett <dennis@hurricanelabs.com>
+/* dangerball, Copyright (c) 2001-2008 Jamie Zawinski <jwz@jwz.org>
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -8,6 +8,12 @@
  * software for any purpose.  It is provided "as is" without express or 
  * implied warranty.
  */
+
+/*  TODO
+ *  It would appear I can't register events for the 0-9 keys to do 
+ *  catch events, not by default at least, maybe I can register my own
+ *  event catching function?
+*/
 
 #define DEFAULTS	"*delay:	30000       \n" \
 			"*count:        30          \n" \
@@ -26,13 +32,22 @@
 
 #ifdef USE_GL /* whole file */
 
+
 #define DEF_DEBUG       "False"
 #define DEF_FNAME       "shader.glsl"
 
+#define SPIKE_FACES   12  /* how densely to render spikes */
+#define SMOOTH_SPIKES True
+#define SPHERE_SLICES 32  /* how densely to render spheres */
+#define SPHERE_STACKS 16
+
+
 typedef struct {
   GLXContext *glx_context;
+  trackball_state *trackball;
   Bool button_down_p;
   Bool pause;
+  Bool update;
   GLuint p;
   GLuint error;
   GLuint step;
@@ -91,6 +106,7 @@ ENTRYPOINT Bool
 julia_handle_event (ModeInfo *mi, XEvent *event) {
   size_t i;
   julia_configuration *bp = &bps[MI_SCREEN(mi)];
+  bp->update=!bp->update;
 
   /* key down only please */
   if (bp->button_down_p == True){
@@ -189,6 +205,7 @@ init_julia (ModeInfo *mi) {
   bp->glx_context = init_GL(mi);
   bp->trackball = gltrackball_init ();
   bp->step = time(NULL) / STEP;
+  if (! bp->update) bp->update = !bp->update; /* update right away */
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); /* Black and opaque */
 
   if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
@@ -216,7 +233,10 @@ draw_julia (ModeInfo *mi) {
     set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
     new_totp(bp->que, bp->p, debug);
     bp->step =  step;
-  }
+  }else if ( ! bp->update ){ /* should I update? */
+    return;
+  }else
+    bp->update = !bp->update;
 
   glBegin(GL_QUADS);            
     glVertex2f(1.0, 1.0); 
@@ -372,7 +392,6 @@ static unsigned long byte_reverse_32(unsigned num) {
 
 static void new_totp(GLint *totp, GLuint program, Bool debug){
   int i;
-  /* hardcoded for now... */
   char secret[] = "\x60\x98\x09\x4c\x91\x53\x5d\x69\x04\x92"; 
   unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
   unsigned char* digest =  HMAC(EVP_sha1(), secret, 10, (unsigned char*)&epoch_steps, sizeof(epoch_steps) , NULL, NULL);    

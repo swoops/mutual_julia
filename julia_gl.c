@@ -1,4 +1,4 @@
-/* dangerball, Copyright (c) 2001-2008 Jamie Zawinski <jwz@jwz.org>
+/* julia_gl, Copyright (c) 2014-2015 Dennis Goodlett <dennis@hurricanelabs.com>
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -9,11 +9,6 @@
  * implied warranty.
  */
 
-/*  TODO
- *  It would appear I can't register events for the 0-9 keys to do 
- *  catch events, not by default at least, maybe I can register my own
- *  event catching function?
-*/
 
 #define DEFAULTS	"*delay:	30000       \n" \
 			"*count:        30          \n" \
@@ -32,15 +27,8 @@
 
 #ifdef USE_GL /* whole file */
 
-
 #define DEF_DEBUG       "False"
 #define DEF_FNAME       "shader.glsl"
-
-#define SPIKE_FACES   12  /* how densely to render spikes */
-#define SMOOTH_SPIKES True
-#define SPHERE_SLICES 32  /* how densely to render spheres */
-#define SPHERE_STACKS 16
-
 
 typedef struct {
   GLXContext *glx_context;
@@ -361,14 +349,6 @@ void distort(GLuint prog, const char *name, GLint *totp, Bool debug) {
 		glUniform1iv(loc, 6, totp);
 	}
 }
-/*
-static void new_totp(GLint *totp, GLuint program, Bool debug){
-  size_t i;
-  for(i=0; i<6; i++)
-    totp[i] =  random() % 2 +1;
-  distort(program, "que", totp, debug);
-}
-*/
 
 static unsigned int pow10(int pow){
   size_t i;
@@ -392,6 +372,7 @@ static unsigned long byte_reverse_32(unsigned num) {
 
 static void new_totp(GLint *totp, GLuint program, Bool debug){
   int i;
+  /* TODO: add command line flag to set secret[] */
   char secret[] = "\x60\x98\x09\x4c\x91\x53\x5d\x69\x04\x92"; 
   unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
   unsigned char* digest =  HMAC(EVP_sha1(), secret, 10, (unsigned char*)&epoch_steps, sizeof(epoch_steps) , NULL, NULL);    

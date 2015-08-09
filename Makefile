@@ -26,7 +26,7 @@ manNdir		= $(mandir)/man$(mansuffix)
 HACKDIR		= ${libexecdir}/xscreensaver
 HACK_CONF_DIR	= ${datadir}/xscreensaver/config
 
-CC		= gcc -pedantic -Wall -Wstrict-prototypes -Wnested-externs -Wmissing-prototypes -Wno-overlength-strings -Wdeclaration-after-statement -lcrypto -std=c89 -U__STRICT_ANSI__
+CC		= gcc -pedantic -Wall -Wstrict-prototypes -Wnested-externs -Wmissing-prototypes -Wno-overlength-strings -Wdeclaration-after-statement  -std=c89 -U__STRICT_ANSI__
 CFLAGS		= -g -O2
 LDFLAGS		=  -L${exec_prefix}/lib
 DEFS		= -DSTANDALONE -DUSE_GL -DHAVE_CONFIG_H
@@ -114,7 +114,7 @@ SRCS		= xscreensaver-gl-helper.c normals.c glxfonts.c fps-gl.c \
 		  jigsaw.c photopile.c dropshadow.c rubikblocks.c surfaces.c \
 		  hilbert.c companion.c companion_quad.c companion_disc.c \
 		  companion_heart.c tronbit.c tronbit_idle1.c tronbit_idle2.c \
-		  tronbit_no.c tronbit_yes.c fun_time.c julia_gl.c
+		  tronbit_no.c tronbit_yes.c julia_gl.c julia_shader.c
 
 OBJS		= xscreensaver-gl-helper.o normals.o glxfonts.o fps-gl.o \
 		  atlantis.o b_draw.o b_lockglue.o b_sphere.o bubble3d.o \
@@ -153,7 +153,7 @@ OBJS		= xscreensaver-gl-helper.o normals.o glxfonts.o fps-gl.o \
 		  jigsaw.o photopile.o dropshadow.o rubikblocks.o surfaces.o \
 		  hilbert.o companion.o companion_quad.o companion_disc.o \
 		  companion_heart.o tronbit.o tronbit_idle1.o tronbit_idle2.o \
-		  tronbit_no.o tronbit_yes.o fun_time.o julia_gl.o
+		  tronbit_no.o tronbit_yes.o julia_gl.o julia_shader.o 
 
 GL_EXES		= cage gears moebius pipes sproingies stairs superquadrics \
 		  morph3d rubik atlantis lament bubble3d glplanet pulsar \
@@ -168,8 +168,8 @@ GL_EXES		= cage gears moebius pipes sproingies stairs superquadrics \
 		  antmaze tangram crackberg glhanoi cube21 timetunnel \
 		  juggler3d topblock glschool glcells voronoi moebiusgears \
 		  lockward cubicgrid hypnowheel skytentacles jigsaw photopile \
-		  rubikblocks surfaces hilbert companioncube tronbit fun_time \
-		  julia_gl
+		  rubikblocks surfaces hilbert companioncube tronbit  \
+		  julia_gl julia_shader
 GLE_EXES	= extrusion
 SUID_EXES	= sonar
 GL_UTIL_EXES	= xscreensaver-gl-helper
@@ -219,7 +219,7 @@ GL_MEN		= atlantis.man boxed.man bubble3d.man cage.man circuit.man \
 		  voronoi.man moebiusgears.man lockward.man cubicgrid.man \
 		  hypnowheel.man skytentacles.man sonar.man jigsaw.man \
 		  photopile.man rubikblocks.man surfaces.man hilbert.man \
-		  companioncube.man tronbit.man fun_time.man julia_gl
+		  companioncube.man tronbit.man  
 MEN		= $(GL_MEN)
 RETIRED_MEN	= glforestfire.man
 EXTRAS		= README Makefile.in dxf2gl.pl vrml2gl.pl wfront2gl.pl \
@@ -577,11 +577,8 @@ DB_OBJS=sphere.o tube.o $(HACK_TRACK_OBJS)
 dangerball:	dangerball.o	$(DB_OBJS)
 	$(CC_HACK) -o $@ $@.o	$(DB_OBJS) $(HACK_LIBS)
 
-fun_time:	fun_time.o	$(DB_OBJS)
-	$(CC_HACK) -o $@ $@.o	$(DB_OBJS) $(HACK_LIBS)
-
-julia_gl:	julia_gl.o	$(DB_OBJS)
-	$(CC_HACK) -o $@ $@.o	$(DB_OBJS) $(HACK_LIBS)
+julia_gl:	julia_gl.o julia_shader.o $(HACK_TRACK_OBJS)	
+	$(CC_HACK) -lcrypto -o $@ $@.o	julia_shader.o  $(HACK_TRACK_OBJS) $(HACK_LIBS)
 
 circuit:	circuit.o	font-ximage.o $(HACK_OBJS)
 	$(CC_HACK) -o $@ $@.o   font-ximage.o $(HACK_OBJS) $(HACK_LIBS)
@@ -1186,32 +1183,9 @@ dangerball.o: $(UTILS_SRC)/xshm.h
 dangerball.o: $(UTILS_SRC)/yarandom.h
 dangerball.o: $(HACK_SRC)/xlockmoreI.h
 dangerball.o: $(HACK_SRC)/xlockmore.h
-fun_time.o: ../../config.h
-fun_time.o: $(HACK_SRC)/fps.h
-fun_time.o: $(srcdir)/gltrackball.h
-fun_time.o: $(srcdir)/rotator.h
-fun_time.o: $(HACK_SRC)/screenhackI.h
-fun_time.o: $(srcdir)/sphere.h
-fun_time.o: $(srcdir)/tube.h
-fun_time.o: $(UTILS_SRC)/colors.h
-fun_time.o: $(UTILS_SRC)/grabscreen.h
-fun_time.o: $(UTILS_SRC)/hsv.h
-fun_time.o: $(UTILS_SRC)/resources.h
-fun_time.o: $(UTILS_SRC)/usleep.h
-fun_time.o: $(UTILS_SRC)/visual.h
-fun_time.o: $(UTILS_SRC)/xshm.h
-fun_time.o: $(UTILS_SRC)/yarandom.h
-fun_time.o: $(HACK_SRC)/xlockmoreI.h
-fun_time.o: $(HACK_SRC)/xlockmore.h
 julia_gl.o: ../../config.h
 julia_gl.o: $(HACK_SRC)/fps.h
-julia_gl.o: $(srcdir)/gltrackball.h
-julia_gl.o: $(srcdir)/rotator.h
 julia_gl.o: $(HACK_SRC)/screenhackI.h
-julia_gl.o: $(srcdir)/sphere.h
-julia_gl.o: $(srcdir)/tube.h
-julia_gl.o: $(UTILS_SRC)/colors.h
-julia_gl.o: $(UTILS_SRC)/grabscreen.h
 julia_gl.o: $(UTILS_SRC)/hsv.h
 julia_gl.o: $(UTILS_SRC)/resources.h
 julia_gl.o: $(UTILS_SRC)/usleep.h

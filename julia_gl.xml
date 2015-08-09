@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<screensaver name="slidescreen" _label="SlideScreen">
+  <file id="fragment shader" _label="fragment shader file to use" arg="-shader %"/>
+  <file id="TOTP Secret" _label="TOTP Secret" arg="-secret %"/>
+
+  <command arg="-root"/>
+  <hgroup>
+   <vgroup>
+   <boolean id="showfps" _label="Show frame rate" arg-set="-fps"/>
+   </vgroup>
+  </hgroup>
+
+  <xscreensaver-image />
+
+  <_description>
+PoC for a mutual authentication screen saver. The code is ugly, I am 
+just trying to get something that works for now.
+
+https://github.com/swoops/mutual_julia
+  </_description>
+</screensaver>

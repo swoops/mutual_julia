@@ -35,17 +35,23 @@ don't want to publish that just yet because my colleagues could use it to
 steal my password.
 
 # Building and running
-Get the source for Xscreensaver and run: 
+This assumes the Xscreensaver source is inside /tmp/xscreensaver-5.33/:
 ```
-    ./configure 
+	cd /tmp
+	git clone https://github.com/swoops/mutual_julia.git # get source
+	# copy source files into OpenGL hacks directory
+	cp /tmp/mutual_julia/glx_files/* /tmp/xscreensaver-5.33/hacks/glx/  
+	# copy the settings XML file
+	cp /tmp/mutual_julia/hack_config/* /tmp/xscreensaver-5.33/hacks/config/ 
+	cd xscreensaver-5.33/hacks/config/
+	./configure
 ```
-and copy these files (except the README) to the hacks/glx directory.  Then run 
+If you don't want to install everything and just want to play with the binary
 ```
-    make julia_gl
-```
-Running the program in windowed mode:
-```
-    ./julia_gl
+cd /tmp/xscreensaver-5.33/hacks/glx/
+make julia_gl
+./julia_gl -shader /tmp/mutual_julia/frag_shaders/shader.glsl
+
 ```
 will cause a window to pop up with a distorted Julia set.  Here is what the keys do:
 ```
@@ -54,11 +60,21 @@ will cause a window to pop up with a distorted Julia set.  Here is what the keys
     0-9     input the TOTP token
     r       reload the shader
 ```
-You can also reference the executable in your ~/.xscreensaver file and use it as a 
-screensaver but it will not accept any key presses.  If you do that make sure you
-reference the shader file properly with the -shader flag.  
+If you want to install this and actually use it as a screensaver:
+```
+cd /tmp/xscreensaver-5.33/
+make
+sudo make install
+
+```
+From here place the shader files somewhere you like.  Then run:
+```
+xscreensaver-demo
+```
+Select julia_gl and click the settings button.  From there change the shader file to 
+the file of your choice and you are ready to go.
 
 If you just want to have this as a Julia fractal screen saver and not the TOTP 
-stuff then reference the shader_no_m.glsl file with the -shader flag.
+stuff then reference the shader_no_m.glsl fragment shader instead of the shader.glsl.
 
 

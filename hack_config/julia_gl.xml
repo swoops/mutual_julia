@@ -3,6 +3,7 @@
 <screensaver name="slidescreen" _label="SlideScreen">
   <file id="fragment shader" _label="fragment shader file to use" arg="-shader %"/>
   <file id="TOTP Secret" _label="TOTP Secret" arg="-secret %"/>
+  <boolean id="random" _label="Use random() instead of totp" arg-set="-random"/>
 
   <command arg="-root"/>
   <hgroup>

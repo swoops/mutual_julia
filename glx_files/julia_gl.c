@@ -18,6 +18,8 @@
 #undef countof
 #define countof(x) (sizeof((x))/sizeof((*x)))
 #define STEP 30
+#define SEC_SIZE 10
+#define SEC_b32_SIZE 16
 
 #include "xlockmore.h"
 #include <ctype.h>
@@ -26,8 +28,6 @@
 
 #ifdef USE_GL /* whole file */
 
-#define DEF_DEBUG       "False"
-#define DEF_FNAME       "shader.glsl"
 
 typedef struct {
   GLXContext *glx_context;
@@ -39,26 +39,29 @@ typedef struct {
   GLuint step;
   GLint que[6];
   GLint ans[6];
+  char secret[SEC_SIZE];
   size_t i;
 } julia_configuration;
 
 static julia_configuration *bps = NULL;
 
 static char *shaderf;
-static char *sec;
+static char *secf;
 static Bool debug;
+static Bool use_random;
 
 static XrmOptionDescRec opts[] = {
+  { "-random",   ".random",   XrmoptionNoArg, "True" },
   { "-secret",   ".secret", XrmoptionSepArg, 0 },
   { "-shader",   ".shader", XrmoptionSepArg, 0 },
   { "-debug",   ".debug",   XrmoptionNoArg, "True" },
-  { "+debug",   ".debug",   XrmoptionNoArg, "False" },
 };
 
 static argtype vars[] = { 
-  {&sec, "secret", "b32 secret", DEF_FNAME, t_String },
-  {&shaderf, "shader", "File Name", DEF_FNAME, t_String },
-  {&debug,   "debug",   "Debuging on/off",   DEF_DEBUG,   t_Bool},
+  {&use_random,   "random",   "TOTP() vs RANDOM()",   "False",   t_Bool},
+  {&secf, "secret", "TOTP secret file", "./.julia_secret", t_String },
+  {&shaderf, "shader", "File Name", "shader.glsl", t_String },
+  {&debug,   "debug",   "Debuging on/off",   "False",   t_Bool},
 };
 ENTRYPOINT ModeSpecOpt julia_opts = {countof(opts), opts, countof(vars), vars, NULL};
 
@@ -187,6 +190,8 @@ init_julia (ModeInfo *mi) {
   }
 	glEnable(GL_DEPTH_TEST);
   bp = &bps[MI_SCREEN(mi)];
+  /* go ahead and get secret*/
+  if ( ! use_random ) get_secret(bp->secret);
   zero6(bp->que);
   zero6(bp->ans);
   bp->i = 0;
@@ -198,7 +203,7 @@ init_julia (ModeInfo *mi) {
   if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
   if (debug) printf("bp->p: %d", bp->p);
 
-  new_totp(bp->que, bp->p, debug);
+  new_totp(bp->secret, bp->que, bp->p, debug);
   set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
 
 
@@ -218,7 +223,7 @@ draw_julia (ModeInfo *mi) {
   if (step > bp->step && !bp->pause){
     if (debug) printf("\nstep: %d      bp->step: %d\n", step, bp->step);
     set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
-    new_totp(bp->que, bp->p, debug);
+    new_totp(bp->secret, bp->que, bp->p, debug);
     bp->step =  step;
   }else if ( ! bp->update ){ /* should I update? */
     return;
@@ -270,6 +275,57 @@ static unsigned int pow10(int pow){
   return ans;
 }
 
+static void get_secret(char *secret){
+  char base32[SEC_b32_SIZE + 1];
+  FILE *fp = fopen(secf, "r");
+  int ret;
+  if (fp == NULL ){
+    /* printf("Using random() could not open %s\n", secf); */
+    use_random = 1;
+    return;
+  }
+  fseek(fp, 0, SEEK_END);
+  if ( ftell(fp) <= SEC_b32_SIZE ){
+    fclose(fp);
+    /* printf("File too small using random()\n"); */
+    use_random = 1;
+    return;
+  }
+  rewind(fp);
+  fread(base32, 1, SEC_b32_SIZE, fp);
+  base32[SEC_b32_SIZE] = 0x00;  /*double check*/
+  ret = base32_convert(base32, secret);
+  fclose(fp);
+  if ( ret != 0 ) use_random = 1;
+}
+
+/* made for 16 char only!!! */
+static int base32_convert(char *string, char *result){
+  unsigned short buff = 0;        /* hold addition */
+  unsigned short count = 0;      /* number of times dumped  */
+  size_t i;                     /* 44loops */
+  short int bitsin = 0;
+
+  for (i=0; i<SEC_b32_SIZE; i++){
+    buff <<= 5;
+    if ((string[i] >= 'A' && string[i] <= 'Z') || (string[i] >= 'a' && string[i] <= 'z')) {
+      buff |= (string[i] & 0x1F) - 1 ;
+    } else if (string[i] >= '2' && string[i] <= '7') {
+      buff |= string[i] - 50 + 26  ;
+    } else {
+      return -1;
+    }
+
+    bitsin += 5;
+
+    if (bitsin >= 8) {
+      result[count++] = buff >> (bitsin - 8);
+      bitsin -= 8;
+    }
+  }
+  return 0;
+}
+
 static unsigned long byte_reverse_32(unsigned num) {
   unsigned long res = num & 0xFF;
   size_t i;
@@ -281,10 +337,14 @@ static unsigned long byte_reverse_32(unsigned num) {
   return res;
 }
 
-static void new_totp(GLint *totp, GLuint program, Bool debug){
+static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
   int i;
-  /* TODO: add command line flag to set secret[] */
-  char secret[] = "\x60\x98\x09\x4c\x91\x53\x5d\x69\x04\x92"; 
+  if ( use_random ){
+    for(i=0; i < 6; i++)
+      totp[i] =  random() % 10; /* probbaly would be better to call random once... */
+    distort(program, "que", totp, debug);
+    return;
+  }
   unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
   unsigned char* digest =  HMAC(EVP_sha1(), secret, 10, (unsigned char*)&epoch_steps, sizeof(epoch_steps) , NULL, NULL);    
 

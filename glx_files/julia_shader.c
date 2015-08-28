@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "julia_shader.h"
-void printShaderInfoLog(GLuint obj)
+
+static void printShaderInfoLog(GLuint obj)
 {
     int infologLength = 0;
     int charsWritten  = 0;
@@ -26,9 +27,11 @@ void set_uniformi2(GLuint prog, const char *name, int x, int y, Bool debug) {
   cord[0] = (float) x;
   cord[1] = (float) y;
 
+  /*  getting rid of some clutter
   if (debug)
     printf("program: %d\n%s.x: %f\n%s.y: %f\nlocation: %d\n",
       prog, name, (float)x, name, (float)y, loc);
+  */
 
 	if(loc != -1) {
 		glUniform2fv(loc, 1, cord);

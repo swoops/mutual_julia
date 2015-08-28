@@ -37,10 +37,8 @@ typedef struct {
   GLuint p;
   GLuint error;
   GLuint step;
-  GLint que[6];
-  GLint ans[6];
+  GLint totp[6];
   char secret[SEC_SIZE];
-  size_t i;
 } julia_configuration;
 
 static julia_configuration *bps = NULL;
@@ -81,18 +79,6 @@ reshape_julia (ModeInfo *mi, int width, int height) {
   glViewport(0,0, width, height);
 }
 
-void zero6(GLint *aq_array){
-  size_t i;
-  for(i=0; i < 6; i++)
-    aq_array[i] = 100;
-  /*
-    why 100? this is in preperation for animating the correcing manipulation
-    ans[i] % 10 will be the manipulation, (ans[i] % 100)/10  (tens place) will 
-    be the amplitude of the manipulation.  100 will be no manipulation and a break;
-  */
-}
-
-
 ENTRYPOINT Bool
 julia_handle_event (ModeInfo *mi, XEvent *event) {
   size_t i;
@@ -104,63 +90,28 @@ julia_handle_event (ModeInfo *mi, XEvent *event) {
     bp->button_down_p = False;
     return False;
   }
-
   bp->button_down_p = True;
-  /* num pad key */
-  if (event->xbutton.button >= 0x0a && event->xbutton.button <= 0x13){
-        int key = event->xbutton.button - 0x09;
-        if (debug) printf("key %d\n", key % 10);
-        bp->ans[bp->i] = key % 10;
-        distort(bp->p, "ans", bp->ans, debug);
-        bp->i = ( bp->i+1 ) % 6;
-        if (bp->i % 6 == 0 ){
-          for (i=0;i<6;i++){
-            if (bp->ans[i] != bp->que[i]) break;
-            else if (i == 5) printf("===========================\n"
-                        "YAY You Know that Answer!!!"
-                        "\n===========================\n");
-        }
 
-  }
-  }else{
-    /* non num pad key */
-    switch(event->xbutton.button) {
-      case 0x19: /* w key, print question */
-        printf("\n=================\nquestion: ");
-        for(i=0;i<6;i++) printf("%x", bp->que[i]%10);
-        printf("\n=================\n");
-        break;
-      case 0x26: /* a key, print answer */
-        printf("\n=================\nanswer: ");
-        for(i=0;i<6;i++) printf("%x", bp->ans[i]%10);
-        printf("\n=================\n");
-        break;
-      case 0x1b: /* r key, reload shader */
-        if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
-        set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
-        break;
-      case 0x31:              /* ` key, reset*/
-        zero6(bp->ans);
-        bp->i = 0;
-        distort(bp->p, "ans", bp->ans, debug);
-        break;
-      case 0x16: /* backspace */
-        if ( bp->i == 0) break;
-        bp->ans[--bp->i] = 10;
-        distort(bp->p, "ans", bp->ans, debug);
-        break;
-      case 0x39: /* n key, new fractal*/
-        set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
-        break;
-      case 0x41: /*space key, pause */
-        if (debug && bp->pause) printf("playing...");
-        else if (debug ) printf("pausing...");
-        bp->pause = !bp->pause;
-        break;
-      default:
-        /* if (debug) printf("key: %x\n", event->xbutton.button); */
-        break;
-    }
+  /* num pad key */
+  /* non num pad key */
+  switch(event->xbutton.button) {
+    case 0x19: /* w key, print question */
+      printf("TOTP: ");
+      for(i=0;i<6;i++) printf("%x", bp->totp[i]);
+      printf("\n");
+      break;
+    case 0x1b: /* r key, reload shader */
+      if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
+      /* set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug); */
+      break;
+    case 0x41: /*space key, pause */
+      if (debug && bp->pause) printf("playing...");
+      else if (debug ) printf("pausing...");
+      bp->pause = !bp->pause;
+      break;
+    default:
+      /* if (debug) printf("key: %x\n", event->xbutton.button); */
+      break;
   }
 
   return False;
@@ -179,7 +130,6 @@ ENTRYPOINT void
 init_julia (ModeInfo *mi) {
   julia_configuration *bp;
 
-  /* if (mi->) do_fps (mi); */
   if (!bps) {
     bps = (julia_configuration *)
       calloc (MI_NUM_SCREENS(mi), sizeof (julia_configuration));
@@ -192,9 +142,6 @@ init_julia (ModeInfo *mi) {
   bp = &bps[MI_SCREEN(mi)];
   /* go ahead and get secret*/
   if ( ! use_random ) get_secret(bp->secret);
-  zero6(bp->que);
-  zero6(bp->ans);
-  bp->i = 0;
   bp->glx_context = init_GL(mi);
   bp->step = time(NULL) / STEP;
   if (! bp->update) bp->update = !bp->update; /* update right away */
@@ -203,8 +150,7 @@ init_julia (ModeInfo *mi) {
   if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
   if (debug) printf("bp->p: %d", bp->p);
 
-  new_totp(bp->secret, bp->que, bp->p, debug);
-  set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
+  new_totp(bp->secret, bp->totp, bp->p, debug);
 
 
   reshape_julia (mi, MI_WIDTH(mi), MI_HEIGHT(mi));
@@ -222,8 +168,7 @@ draw_julia (ModeInfo *mi) {
   
   if (step > bp->step && !bp->pause){
     if (debug) printf("\nstep: %d      bp->step: %d\n", step, bp->step);
-    set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug);
-    new_totp(bp->secret, bp->que, bp->p, debug);
+    new_totp(bp->secret, bp->totp, bp->p, debug);
     bp->step =  step;
   }else if ( ! bp->update ){ /* should I update? */
     return;
@@ -242,6 +187,7 @@ draw_julia (ModeInfo *mi) {
 }
 
 
+/* pass TOTOP token to shader */
 void distort(GLuint prog, const char *name, GLint *totp, Bool debug) {
 	GLint loc = glGetUniformLocation(prog, name);
   if (debug){
@@ -266,28 +212,20 @@ void distort(GLuint prog, const char *name, GLint *totp, Bool debug) {
 	}
 }
 
-static unsigned int pow10(int pow){
-  size_t i;
-  unsigned int ans = 10;
-  if (pow <= 0) return 1;
-  for (i=1; i<pow; i++)
-    ans *= 10; 
-  return ans;
-}
 
 static void get_secret(char *secret){
   char base32[SEC_b32_SIZE + 1];
   FILE *fp = fopen(secf, "r");
   int ret;
   if (fp == NULL ){
-    /* printf("Using random() could not open %s\n", secf); */
+    printf("Using random() could not open %s\n", secf);
     use_random = 1;
     return;
   }
   fseek(fp, 0, SEEK_END);
   if ( ftell(fp) <= SEC_b32_SIZE ){
     fclose(fp);
-    /* printf("File too small using random()\n"); */
+    printf("File too small using random()\n");
     use_random = 1;
     return;
   }
@@ -299,7 +237,9 @@ static void get_secret(char *secret){
   if ( ret != 0 ) use_random = 1;
 }
 
-/* made for 16 char only!!! */
+/* made for 16 char only!!! *
+ * less will be neglected   *
+ * more will go unused      */
 static int base32_convert(char *string, char *result){
   unsigned short buff = 0;        /* hold addition */
   unsigned short count = 0;      /* number of times dumped  */
@@ -336,13 +276,13 @@ static unsigned long byte_reverse_32(unsigned num) {
   }
   return res;
 }
-
 static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
   int i;
   if ( use_random ){
+    unsigned int holder = random() % 999999;
     for(i=0; i < 6; i++)
-      totp[i] =  random() % 10; /* probbaly would be better to call random once... */
-    distort(program, "que", totp, debug);
+      totp[i] =  ( holder % pow10(6-i) ) / pow10(5-i);
+    distort(program, "totp", totp, debug);
     return;
   }
   unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
@@ -358,7 +298,15 @@ static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
     totp[i] =  ( code % pow10(6-i) ) / pow10(5-i);
   
 
-  distort(program, "que", totp, debug);
+  distort(program, "totp", totp, debug);
+}
+static unsigned int pow10(int pow){
+  size_t i;
+  unsigned int ans = 10;
+  if (pow <= 0) return 1;
+  for (i=1; i<pow; i++)
+    ans *= 10; 
+  return ans;
 }
 
 

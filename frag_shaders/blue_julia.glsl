@@ -1,5 +1,5 @@
 uniform vec2 res;
-uniform vec2 c;
+uniform int totp[6];
 
 
 void main() {
@@ -9,6 +9,9 @@ void main() {
   float i,iter = 100.0;
   int j,m;
 
+  vec2 c;
+  c.x = (float( totp[0]*100 + totp[2] * 10 + totp[4] ) *  .001f) * pow(-1.0f, totp[4]);
+  c.y = (float( totp[1]*100 + totp[3] * 10 + totp[5] ) *  .001f)* pow(-1.0f, totp[5]);
 
   for(i=0.0; i<iter; i++) {
     temp.x = (pos.x * pos.x - pos.y * pos.y) + 0.001 * c.x;

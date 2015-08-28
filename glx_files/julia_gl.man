@@ -21,7 +21,7 @@ The \fIjulia_gl\fP program is a foolish attempt to make a screensaver authentica
 Use this Open-GL fragment shader, default is \fIshader.glsl\fP.
 .TP 8
 .B \-secret \fIsecret-file\fP
-Path to file containing 16 charater base32 encoded secret, default is \fI./.julia_secret\fP.
+Path to file containing 16 charater base32 encoded secret, default is \fI~/.julia_secret\fP.
 .TP 8
 .B \-random
 Use random() to create the julia set instead of the TOTP algorithm.  Cheaper on cpu but no mutual authentication.

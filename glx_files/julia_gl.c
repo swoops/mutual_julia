@@ -234,7 +234,10 @@ static void get_secret(char *secret){
   base32[SEC_b32_SIZE] = 0x00;  /*double check*/
   ret = base32_convert(base32, secret);
   fclose(fp);
-  if ( ret != 0 ) use_random = 1;
+  if ( ret != 0 ){
+    use_random = 1;
+    printf("base32 conver failed: using random\n");
+  }
 }
 
 /* made for 16 char only!!! *
@@ -253,6 +256,7 @@ static int base32_convert(char *string, char *result){
     } else if (string[i] >= '2' && string[i] <= '7') {
       buff |= string[i] - 50 + 26  ;
     } else {
+      printf("[!]unknown character: %c\n", string[i]);
       return -1;
     }
 
@@ -278,21 +282,18 @@ static unsigned long byte_reverse_32(unsigned num) {
 }
 static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
   int i;
-  if ( use_random ){
-    unsigned int holder = random() % 999999;
-    for(i=0; i < 6; i++)
-      totp[i] =  ( holder % pow10(6-i) ) / pow10(5-i);
-    distort(program, "totp", totp, debug);
-    return;
-  }
-  unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
-  unsigned char* digest =  HMAC(EVP_sha1(), secret, 10, (unsigned char*)&epoch_steps, sizeof(epoch_steps) , NULL, NULL);    
+  unsigned long int code;
+  if ( !use_random ){
+    unsigned long epoch_steps = byte_reverse_32((time(NULL) / 30));
+    unsigned char* digest =  HMAC(EVP_sha1(), secret, 10, (unsigned char*)&epoch_steps, sizeof(epoch_steps) , NULL, NULL);    
 
-  int short offset = digest[19] & 0xf;
-  unsigned long int code = ((digest[offset] & 0x7f) << 24 |
-          (digest[offset + 1] & 0xff) << 16 |
-          (digest[offset + 2] & 0xff) << 8 |
-          (digest[offset + 3] & 0xff)) % 1000000;
+    int short offset = digest[19] & 0xf;
+    code = ((digest[offset] & 0x7f) << 24 |
+            (digest[offset + 1] & 0xff) << 16 |
+            (digest[offset + 2] & 0xff) << 8 |
+            (digest[offset + 3] & 0xff)) % 1000000;
+  }else 
+    code = random();
 
   for(i=0; i < 6; i++)
     totp[i] =  ( code % pow10(6-i) ) / pow10(5-i);

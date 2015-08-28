@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "julia_shader.h"
 
-static void printShaderInfoLog(GLuint obj)
+void printShaderInfoLog(GLuint obj)
 {
     int infologLength = 0;
     int charsWritten  = 0;

@@ -1,6 +1,7 @@
-# mutual_julia
-PoC for a mutual authentication screen saver.  The code is ugly, I am just 
-trying to get something that works for now.
+# mutual_julia --mutate--
+PoC for a mutual authentication screen saver.  This is a branch for using
+the mutation of an image to indicate authentication rather then the 
+duplication of the image, which is now the master branch.
 
 # Begin Rant
 When a colleague returned from coffee he found a laptop exactly where he left 

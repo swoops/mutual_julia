@@ -1,3 +1,5 @@
+![Pic of crazy.glsl fragment shader](./mutual_julia.png?raw=true "Crazy Shader")
+
 # mutual_julia
 PoC for a mutual authentication screen saver using a Julia Set and TOTP.  
 

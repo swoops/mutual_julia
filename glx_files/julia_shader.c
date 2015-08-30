@@ -2,23 +2,15 @@
 #include <stdio.h>
 #include "julia_shader.h"
 
-void printShaderInfoLog(GLuint obj)
-{
-    int infologLength = 0;
-    int charsWritten  = 0;
-    char *infoLog;
+/* assumes size of six */
+void set_array(GLuint prog, const char *name, GLint *totp, Bool debug) {
+	GLint loc = glGetUniformLocation(prog, name);
 
-	glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
-
-    if (infologLength > 0)
-    {
-        infoLog = (char *)malloc(infologLength);
-        glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
-		printf("%s\n",infoLog);
-        free(infoLog);
-    }
+	if(loc != -1) {
+		glUniform1iv(loc, 6, totp);
+	}else if (debug) 
+    printf("program: %d location: %d\n", prog, loc);
 }
-
 void set_uniformi2(GLuint prog, const char *name, int x, int y, Bool debug) {
 
 	GLint loc = glGetUniformLocation(prog, name);
@@ -27,16 +19,16 @@ void set_uniformi2(GLuint prog, const char *name, int x, int y, Bool debug) {
   cord[0] = (float) x;
   cord[1] = (float) y;
 
-  /*  getting rid of some clutter
-  if (debug)
-    printf("program: %d\n%s.x: %f\n%s.y: %f\nlocation: %d\n",
-      prog, name, (float)x, name, (float)y, loc);
-  */
 
 	if(loc != -1) {
 		glUniform2fv(loc, 1, cord);
-	}
+  }else if (debug) {
+    printf("program: %d\n%s.x: %f\n%s.y: %f\nlocation: %d\n",
+      prog, name, (float)x, name, (float)y, loc);
+  }
+
 }
+
 int make_shader(char *fname, Bool debug){
   GLuint f,program;
   unsigned int len;
@@ -56,36 +48,49 @@ int make_shader(char *fname, Bool debug){
 	fread(shader, 1, len, fp);  /* put 1*len byptes from fp into shader */
 	shader[len] = 0;  /*  null_terminate :) */
 
-  if (debug) printf("=====Shaer Source=====\n%s\n=======================\n", shader);
   f = glCreateShader(GL_FRAGMENT_SHADER);
 
 	glShaderSource(f, 1, (const char**)&shader, NULL);
   free(shader);
 
 	glCompileShader(f);
-	if (debug) printShaderInfoLog(f);
+	if (debug) get_shader_err(f);
 
 	program = glCreateProgram();
 	glAttachShader(program,f);
 	glLinkProgram(program);
-	if (debug) printProgramInfoLog(program);
+	if (debug) get_program_err(program);
 	glUseProgram(program);
   return program;
 }
 
-void printProgramInfoLog(GLuint obj)
-{
-    int infologLength = 0;
-    int charsWritten  = 0;
-    char *infoLog;
+void get_program_err(GLuint obj) {
+  int infologLength = 0;
+  int charsWritten  = 0;
+  char *infoLog;
 
-    glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+  glGetProgramiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
 
-    if (infologLength > 0)
-    {
-        infoLog = (char *)malloc(infologLength);
-        glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
-		printf("%s\n",infoLog);
-        free(infoLog);
-    }
+  if (infologLength > 0) {
+    infoLog = (char *)malloc(infologLength);
+    glGetProgramInfoLog(obj, infologLength, &charsWritten, infoLog);
+    printf("%s\n",infoLog);
+    free(infoLog);
+  }
 }
+
+void get_shader_err(GLuint obj) {
+  int infologLength = 0;
+  int charsWritten  = 0;
+  char *infoLog;
+
+	glGetShaderiv(obj, GL_INFO_LOG_LENGTH,&infologLength);
+
+  if (infologLength > 0) {
+    infoLog = (char *)malloc(infologLength);
+    glGetShaderInfoLog(obj, infologLength, &charsWritten, infoLog);
+    printf("%s\n",infoLog);
+    free(infoLog);
+  }
+}
+

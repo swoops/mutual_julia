@@ -105,12 +105,11 @@ julia_handle_event (ModeInfo *mi, XEvent *event) {
       /* set_uniformi2(bp->p, "c", random()%2000 - 1000, random()%2000 - 1000, debug); */
       break;
     case 0x41: /*space key, pause */
-      if (debug && bp->pause) printf("playing...");
-      else if (debug ) printf("pausing...");
+      if (debug ){
+        if (bp->pause) { printf("playing...\n"); }
+        else { printf("paused...\n"); }
+      } 
       bp->pause = !bp->pause;
-      break;
-    default:
-      /* if (debug) printf("key: %x\n", event->xbutton.button); */
       break;
   }
 
@@ -132,13 +131,12 @@ init_julia (ModeInfo *mi) {
 
   if (!bps) {
     bps = (julia_configuration *)
-      calloc (MI_NUM_SCREENS(mi), sizeof (julia_configuration));
+    calloc (MI_NUM_SCREENS(mi), sizeof (julia_configuration));
     if (!bps) {
       fprintf(stderr, "%s: out of memory\n", progname);
       exit(1);
     }
   }
-	glEnable(GL_DEPTH_TEST);
   bp = &bps[MI_SCREEN(mi)];
   /* go ahead and get secret*/
   if ( ! use_random ) get_secret(bp->secret);
@@ -148,9 +146,8 @@ init_julia (ModeInfo *mi) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f); /* Black and opaque */
 
   if ( ( bp->p = make_shader(shaderf, debug )) ) bp->error = 1;
-  if (debug) printf("bp->p: %d", bp->p);
 
-  new_totp(bp->secret, bp->totp, bp->p, debug);
+  new_totp(bp->secret, bp->totp, bp->p);
 
 
   reshape_julia (mi, MI_WIDTH(mi), MI_HEIGHT(mi));
@@ -166,11 +163,10 @@ draw_julia (ModeInfo *mi) {
   glClear(GL_COLOR_BUFFER_BIT);   /*  Clear the color buffer with current clearing color */
   glUseProgram(bp->p);
   
-  if (step > bp->step && !bp->pause){
-    if (debug) printf("\nstep: %d      bp->step: %d\n", step, bp->step);
-    new_totp(bp->secret, bp->totp, bp->p, debug);
+  if (step > bp->step && !bp->pause){ /* should I get new TOTP*/
+    new_totp(bp->secret, bp->totp, bp->p);
     bp->step =  step;
-  }else if ( ! bp->update ){ /* should I update? */
+  }else if ( ! bp->update ){ /* should I update anyways? */
     return;
   }else
     bp->update = !bp->update;
@@ -185,33 +181,6 @@ draw_julia (ModeInfo *mi) {
   if (mi->fps_p) do_fps (mi);
   glXSwapBuffers(MI_DISPLAY (mi), MI_WINDOW(mi));
 }
-
-
-/* pass TOTOP token to shader */
-void distort(GLuint prog, const char *name, GLint *totp, Bool debug) {
-	GLint loc = glGetUniformLocation(prog, name);
-  if (debug){
-    printf("program: %d location: %d\n"
-          "\t%s[0] = %d\n"
-          "\t%s[1] = %d\n"
-          "\t%s[2] = %d\n"
-          "\t%s[3] = %d\n"
-          "\t%s[4] = %d\n"
-          "\t%s[5] = %d\n",
-        prog, loc,
-        name, totp[0],
-        name, totp[1],
-        name, totp[2],
-        name, totp[3],
-        name, totp[4],
-        name, totp[5]);
-  }
-
-	if(loc != -1) {
-		glUniform1iv(loc, 6, totp);
-	}
-}
-
 
 static void get_secret(char *secret){
   char base32[SEC_b32_SIZE + 1];
@@ -240,9 +209,8 @@ static void get_secret(char *secret){
   }
 }
 
-/* made for 16 char only!!! *
- * less will be neglected   *
- * more will go unused      */
+/* made for 16 char only!!! less will be neglected  *
+ * more will go unused                              */
 static int base32_convert(char *string, char *result){
   unsigned short buff = 0;        /* hold addition */
   unsigned short count = 0;      /* number of times dumped  */
@@ -280,7 +248,7 @@ static unsigned long byte_reverse_32(unsigned num) {
   }
   return res;
 }
-static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
+static void new_totp(char* secret, GLint *totp, GLuint program){
   int i;
   unsigned long int code;
   if ( !use_random ){
@@ -297,9 +265,9 @@ static void new_totp(char* secret, GLint *totp, GLuint program, Bool debug){
 
   for(i=0; i < 6; i++)
     totp[i] =  ( code % pow10(6-i) ) / pow10(5-i);
-  
 
-  distort(program, "totp", totp, debug);
+  /* pass TOTP token to shader */
+  set_array(program, "totp", totp, debug);
 }
 static unsigned int pow10(int pow){
   size_t i;

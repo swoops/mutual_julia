@@ -16,7 +16,13 @@ extern void glUniform1iv(GLint, GLsizei, const GLint *);
 extern GLint glGetUniformLocation(GLuint, const GLchar *);
 extern void glUniform2fv( GLint, GLsizei, const GLfloat *);
 
+/* make the shader */
 int make_shader(char *fname, Bool debug);
-void printShaderInfoLog(GLuint obj);
+
+/* set varaibles in shader */
 void set_uniformi2(GLuint prog, const char *name, int x, int y, Bool debug);
-void printProgramInfoLog(GLuint obj);
+void set_array(GLuint prog, const char *name, GLint *totp, Bool debug);
+
+/* print errors  when debugging*/
+void get_program_err(GLuint obj);
+void get_shader_err(GLuint obj);

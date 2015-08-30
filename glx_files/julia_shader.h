@@ -20,9 +20,9 @@ extern void glUniform2fv( GLint, GLsizei, const GLfloat *);
 int make_shader(char *fname, Bool debug);
 
 /* set varaibles in shader */
-void set_uniformi2(GLuint prog, const char *name, int x, int y, Bool debug);
-void set_array(GLuint prog, const char *name, GLint *totp, Bool debug);
+void set_uniformi2(GLuint prog, const char *name, int x, int y);
+void set_array(GLuint prog, const char *name, GLint *totp);
 
 /* print errors  when debugging*/
-void get_program_err(GLuint obj);
-void get_shader_err(GLuint obj);
+void program_info(GLuint obj);
+void shader_info(GLuint obj, char *fname);

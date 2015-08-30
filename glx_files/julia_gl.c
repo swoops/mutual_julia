@@ -70,7 +70,7 @@ ENTRYPOINT void
 reshape_julia (ModeInfo *mi, int width, int height) {
   julia_configuration *bp = &bps[MI_SCREEN(mi)];
 
-  set_uniformi2(bp->p, "res", width, height, debug);
+  set_uniformi2(bp->p, "res", width, height);
 
   /*  Set to 2D orthographic projection with the specified clipping area */
   glMatrixMode(GL_PROJECTION);      /*  Select the Projection matrix for operation */
@@ -267,7 +267,7 @@ static void new_totp(char* secret, GLint *totp, GLuint program){
     totp[i] =  ( code % pow10(6-i) ) / pow10(5-i);
 
   /* pass TOTP token to shader */
-  set_array(program, "totp", totp, debug);
+  set_array(program, "totp", totp);
 }
 static unsigned int pow10(int pow){
   size_t i;

@@ -80,7 +80,7 @@ reshape_julia (ModeInfo *mi, int width, int height) {
 }
 
 ENTRYPOINT Bool
-julia_handle_event (ModeInfo *mi, XEvent *event) {
+julia_handle_event(ModeInfo *mi, XEvent *event) {
   size_t i;
   julia_configuration *bp = &bps[MI_SCREEN(mi)];
   bp->update=!bp->update;
@@ -111,7 +111,15 @@ julia_handle_event (ModeInfo *mi, XEvent *event) {
       } 
       bp->pause = !bp->pause;
       break;
+    case 0x39:  /* n key */
+      if (! use_random){
+        use_random = True;
+        if (debug) printf("[*] julia_handle_event: Random: True\n");
+      }
+      new_totp(bp->secret, bp->totp, bp->p);
+      break;
   }
+  if (debug && bp->button_down_p) printf("[*] KEY: 0x%x\n", event->xbutton.button);
 
   return False;
 }

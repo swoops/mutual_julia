@@ -74,6 +74,7 @@ Here are what the keys do:
     w       	print TOTP token
     r       	reload the shader
 	<space> 	pause the screen
+	n			new picture (enforces random() instead of TOTP)
 ```
 If you want to install this and actually use it as a screensaver:
 ```

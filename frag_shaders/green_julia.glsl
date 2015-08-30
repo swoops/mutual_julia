@@ -14,13 +14,14 @@ void main() {
   c.y = (float( totp[1]*100 + totp[3] * 10 + totp[5] ) *  .001f)* pow(-1.0f, totp[5]);
 
   for(i=0.0; i<iter; i++) {
-    temp.x = (pos.x * pos.x - pos.y * pos.y) + 0.001 * c.x;
-    temp.y =  ( pos.x * pos.y + pos.x * pos.y )   + 0.001 * c.y;
+    temp.x = (pos.x * pos.x - pos.y * pos.y) + c.x;
+    temp.y =  ( pos.x * pos.y + pos.x * pos.y ) + c.y;
 
     if(dot(temp, temp) > 4.0) break;
     pos = temp;
   }
 
-  gl_FragColor = vec4(0.1*i/iter, i/iter, 0.3*i/iter, 1.0); 
+  float color = i/( iter * 0.1 );
+  gl_FragColor = vec4( 0.2 * color, color, 0.2 * color, 1.0); 
 
 }

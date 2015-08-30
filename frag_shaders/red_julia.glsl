@@ -22,6 +22,6 @@ void main() {
   }
 
   float color = i/( iter * 0.1 );
-  gl_FragColor = vec4( 0.2 * color, 0.2 * color, color, 1.0); 
+  gl_FragColor = vec4( color, 0.2 * color, 0.2 * color, 1.0); 
 
 }

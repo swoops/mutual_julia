@@ -1,5 +1,10 @@
 # mutual_julia
-PoC for a mutual authentication screen saver.  
+PoC for a mutual authentication screen saver using a Julia Set and TOTP.  
+
+For know it just makes pretty pictures based of a TOTP token instead of 
+randomness.  Eventually I hope to have an Android app that produces the same 
+images at the same time.  If your phone shows the same image as *your* computer
+then you have reason to trust it is your computer.
 
 # Mutual Authentication?
 Authentication is a process that is used to prove your identity.  When you 
@@ -7,10 +12,9 @@ log into your lock screen (you do lock your computer I hope) you are providing
 a secret that proves your identity.  Since you and your computer are the only
 two entities that know your secret (right?) your computer can assume it must 
 be you and grant you access.  Mutual authentication is when both parties prove
-their identities to each other.  You should only type your password into 
-facebook after your browser has verified you are actually sending your password
-to facebook.  Verifying the website that claims to be facebook is actually
-facebook is done for you by your browser using some fancy cryptography.
+their identities to each other.  Your password does not prove the computer is
+your computer.  I could make a computer that looks like yours and lets you in
+regardless of the password you type.
 
 This is a Xscreensaver hack (pretty picture/animation) that is intended to
 provide verification that no one has switched your computer for a malicious
@@ -38,6 +42,10 @@ going wrong. However, who would of checked the logs?  Who would of scrutinised
 the times of all the log messages and realized their password was compromised?
 
 Later I made his computer talk to him :)
+
+# Will this really stop that attack?
+Probably not, but it has been fun making it this far.  I am no cryptogropher but
+this should make attacks much more difficult.  
 
 # Building and running
 This assumes the Xscreensaver source is inside /tmp/xscreensaver-5.33/:

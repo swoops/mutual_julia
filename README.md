@@ -1,10 +1,10 @@
 # mutual_julia
 PoC for a mutual authentication screen saver using a Julia Set and TOTP.  
 
-For know it just makes pretty pictures based of a TOTP token instead of 
+For now it just makes pretty pictures based off a TOTP token instead of 
 randomness.  Eventually I hope to have an Android app that produces the same 
-images at the same time.  If your phone shows the same image as *your* computer
-then you have reason to trust it is your computer.
+images at the same time.  If your phone shows the same image as *your* computer 
+then you have reason to trust that it is your computer.
 
 # Mutual Authentication?
 Authentication is a process that is used to prove your identity.  When you 
@@ -16,35 +16,36 @@ their identities to each other.  Your password does not prove the computer is
 your computer.  I could make a computer that looks like yours and lets you in
 regardless of the password you type.
 
-This is a Xscreensaver hack (pretty picture/animation) that is intended to
+This is an Xscreensaver hack (pretty picture/animation) that is intended to
 provide verification that no one has switched your computer for a malicious
-one when you are not looking.
+one when you were not looking.
 
 # Malicious Computer Switching... Really?
 Yup... It worked for me.  
 
-When a colleague returned from coffee he found *a* laptop exactly where he left 
-*his* laptop.  This laptop looked exactly like his laptop, it smelled like his 
-laptop it even sounded like his laptop.  Therefore it must be hist laptop and 
-he should thus he should definitely type in one of hist most important passwords
-(QED).
+When a colleague returned from getting his coffee he found *a* laptop exactly 
+where he left *his* laptop.  This laptop looked exactly like his laptop, it 
+smelled like his laptop, it even sounded like his laptop.  Therefore it must be 
+his laptop and thus he should definitely type in one of his most important 
+passwords (QED).
 
 The physical laptop was actually his, but had been rebooted into a malicious OS.
-The OS was running entirely in RAM and did not change the disk, it showed a 
-screen saver that looked exactly like his screen saver.  When he typed his 
-password in I received it on my computer.  Then *his* computer appears to crash, 
+The OS was running entirely in RAM and did not change the disk, and it showed a 
+screen saver that looked exactly like his screen saver.  When he typed in his 
+password, I received it on my computer.  Then *his* computer appeared to crash, 
 causing him to reboot it into his real computer.
 
 This guy was no slouch either.  He had full disk encryption, a very complicated 
 password and was blocking DMA.  Upon reboot logs would only show someone had 
 hard rebooted his computer.  A time discrepancy is the only sign of something 
-going wrong. However, who would of checked the logs?  Who would of scrutinised
-the times of all the log messages and realized their password was compromised?
+going wrong. However, who would have checked the logs?  Who would have 
+scrutinised the times of all the log messages and realized his password was 
+compromised?
 
 Later I made his computer talk to him :)
 
 # Will this really stop that attack?
-Probably not, but it has been fun making it this far.  I am no cryptogropher but
+Probably not, but it has been fun making it thus far.  I am no cryptographer but
 this should make attacks much more difficult.  
 
 # Building and running
@@ -59,14 +60,16 @@ This assumes the Xscreensaver source is inside /tmp/xscreensaver-5.33/:
 	cd xscreensaver-5.33/hacks/config/
 	./configure
 ```
-If you don't want to install everything and just want to play with the binary
+If you don't want to install everything and just want to play with the binary:
 ```
 cd /tmp/xscreensaver-5.33/hacks/glx/
 make julia_gl
 ./julia_gl -shader /tmp/mutual_julia/frag_shaders/shader.glsl
 
 ```
-will cause a window to pop up with a distorted Julia set.  Here is what the keys do:
+...will cause a window to pop up with a distorted Julia set.  
+
+Here are what the keys do:
 ```
     w       	print TOTP token
     r       	reload the shader
@@ -79,7 +82,7 @@ make
 sudo make install
 
 ```
-From here place the shader files somewhere you like.  Then run:
+From here, place the shader files somewhere you like.  Then run:
 ```
 xscreensaver-demo
 ```

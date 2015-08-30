@@ -1,38 +1,43 @@
 # mutual_julia
-PoC for a mutual authentication screen saver.  The code is ugly, I am just 
-trying to get something that works for now.
+PoC for a mutual authentication screen saver.  
 
-# Begin Rant
-When a colleague returned from coffee he found a laptop exactly where he left 
-his laptop, with apparently the same operating system and even the same screen 
-saver?  Must be his computer right?  So he typed his password into my computer 
-and I was later able to make his computer talk to him.  There is more to the 
-attack but I won't bore you.
+# Mutual Authentication?
+Authentication is a process that is used to prove your identity.  When you 
+log into your lock screen (you do lock your computer I hope) you are providing
+a secret that proves your identity.  Since you and your computer are the only
+two entities that know your secret (right?) your computer can assume it must 
+be you and grant you access.  Mutual authentication is when both parties prove
+their identities to each other.  You should only type your password into 
+facebook after your browser has verified you are actually sending your password
+to facebook.  Verifying the website that claims to be facebook is actually
+facebook is done for you by your browser using some fancy cryptography.
 
-This is an xscreensaver hack that I created to display a distorted Julia set 
-fractal, typing in the correct two factor token causes the image to become 
-undistorted, showing the screen saver had the same knowledge of the TOTP secret 
-as you.  Why?  Because it was able to distort the image in a way that your 
-your TOTP token fix.  This would prove the computer is your computer.  As long
-as the distortion functions were easy to follow.
+This is a Xscreensaver hack (pretty picture/animation) that is intended to
+provide verification that no one has switched your computer for a malicious
+one when you are not looking.
 
-This is a proof of concept, it does not really work.  First of all, I am not a 
-cryptographer and so there are likely attacks on this approach.  Second, it does
-not work as an actual screen saver.  It will display the image but typing in 
-your TOTP token will just bring up the normal PAM auth.  Xscreensaver works 
-hard to not let any keys go to any other program, and I don't know that I want 
-to risk changing that behavior just to have my fancy cryptographic mutual 
-authentication screen saver.
+# Malicious Computer Switching... Really?
+Yup... It worked for me.  
 
-Why make it public?  I have not put any good work into getting key presses to
-go to the hack.  I think it might be possible with PAM but I am not sure.  I
-am also interested in adding this to slock instead, because the code is 
-simpler but at the same time I would rather use Xscreensaver.  So I am kinda
-stuck and figured it would be easier to share my concept and get help if I 
-could give out the code.  Currently there is a better version of this that I
-use, without the distortion functions, and with fancy geometric traps.  I 
-don't want to publish that just yet because my colleagues could use it to 
-steal my password.
+When a colleague returned from coffee he found *a* laptop exactly where he left 
+*his* laptop.  This laptop looked exactly like his laptop, it smelled like his 
+laptop it even sounded like his laptop.  Therefore it must be hist laptop and 
+he should thus he should definitely type in one of hist most important passwords
+(QED).
+
+The physical laptop was actually his, but had been rebooted into a malicious OS.
+The OS was running entirely in RAM and did not change the disk, it showed a 
+screen saver that looked exactly like his screen saver.  When he typed his 
+password in I received it on my computer.  Then *his* computer appears to crash, 
+causing him to reboot it into his real computer.
+
+This guy was no slouch either.  He had full disk encryption, a very complicated 
+password and was blocking DMA.  Upon reboot logs would only show someone had 
+hard rebooted his computer.  A time discrepancy is the only sign of something 
+going wrong. However, who would of checked the logs?  Who would of scrutinised
+the times of all the log messages and realized their password was compromised?
+
+Later I made his computer talk to him :)
 
 # Building and running
 This assumes the Xscreensaver source is inside /tmp/xscreensaver-5.33/:
@@ -55,10 +60,9 @@ make julia_gl
 ```
 will cause a window to pop up with a distorted Julia set.  Here is what the keys do:
 ```
-    w       print TOTP token
-    a       print how much of the token you have typed
-    0-9     input the TOTP token
-    r       reload the shader
+    w       	print TOTP token
+    r       	reload the shader
+	<space> 	pause the screen
 ```
 If you want to install this and actually use it as a screensaver:
 ```
@@ -73,8 +77,3 @@ xscreensaver-demo
 ```
 Select julia_gl and click the settings button.  From there change the shader file to 
 the file of your choice and you are ready to go.
-
-If you just want to have this as a Julia fractal screen saver and not the TOTP 
-stuff then reference the shader_no_m.glsl fragment shader instead of the shader.glsl.
-
-

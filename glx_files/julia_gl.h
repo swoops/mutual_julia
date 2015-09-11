@@ -1,4 +1,3 @@
-#include <GL/gl.h>
 #include <openssl/hmac.h>
 
 
